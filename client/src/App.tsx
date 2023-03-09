@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from 'react-bootstrap';
 import { NoteModel } from './models/noteModel';
-import './App.css';
+import NoteComponent from './components/NoteComponent/NoteComponent';
+import { Col, Container, Row } from 'react-bootstrap';
+
+// Todo zrobic tak aby nie było innych w App.tsx komponentow
+import styles from "./components/SingleNoteComponent/SingleNoteComponent.module.css"
 
 function App() {
   const [notes, setNotes] = useState<NoteModel[]>([]);
@@ -11,10 +14,10 @@ function App() {
       try {
         // Todo zmienic url na lepszy
         const response = await fetch("api/notes", { method: "GET" })
-        const notes = await response.json();
+        const allNotes = await response.json();
 
         // Todo sprawdzic czy jak sie zmieni NOTES na inny tekst to bedzie dzialac bo jest podobny do 
-        setNotes(notes)
+        setNotes(allNotes)
         console.log('aaaa', response);
       } catch (error) {
         console.log(error);
@@ -23,13 +26,21 @@ function App() {
       }
     }
     loadNotes();
-    // egzekfujemy to tylko podczas rozpoczecia fukcji
+    // check to tylko podczas rozpoczecia fukcji
   }, [])
   
   return (
-    <div className="App">
-      {JSON.stringify(notes)}
-    </div>
+    <Container>
+      <Row xs={1} md={2} xl={3} className="g-3">
+        {notes.map((note) => ( 
+          <Col key={note._id} >
+
+            {/* Todo sprawdzić czy można lepiej nazwać lub inaczej zaimplementwać className bo coś mi nie pasuje w tym */}
+            <NoteComponent note={note} className={styles.singleNote} />
+          </Col>
+        ))}
+      </Row>
+    </Container>
   );
 }
 

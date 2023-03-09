@@ -1,0 +1,9 @@
+/* Todo pozmianiac tutaj css bo kijowo to wszystko wyglada */
+
+.singleNote {
+    height: 200px;
+}
+
+.singleNote:hover {
+    box-shadow: gray;
+}
