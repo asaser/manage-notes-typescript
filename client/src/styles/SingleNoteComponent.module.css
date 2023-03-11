@@ -7,3 +7,13 @@
 .singleNote:hover {
     box-shadow: gray;
 }
+
+.notePage {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.noteGrid {
+    width: 100%;
+}
