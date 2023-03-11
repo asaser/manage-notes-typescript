@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NoteModel } from './models/noteModel';
 import NoteComponent from './components/NoteComponent/NoteComponent';
-import { Button, Col, Container, Row } from 'react-bootstrap';
+import { Button, Col, Container, Row, Spinner } from 'react-bootstrap';
 import * as NotesApi from './routes/notesRouters';
 
 // Todo zrobic tak aby nie było innych w App.tsx komponentow
@@ -18,16 +18,24 @@ function App() {
   // po to aby schowac i pokazac dialog
   const [noteAbleEdit, setNoteAbleEdit] = useState<NoteModel | null>(null)
 
+  // notes loading
+  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [showLoadingErrorNotes, setShowLoadingErrorNotes] = useState(false)
+
   useEffect(() => {
     async function loadNotes() {
       try {
+        setShowLoadingErrorNotes(false);
+        setLoadingNotes(true);
         const allNotes = await NotesApi.fetchNotes()
         // Todo sprawdzic czy jak sie zmieni NOTES na inny tekst to bedzie dzialac bo jest podobny do 
         setNotes(allNotes)
       } catch (error) {
         console.log(error);
         // Todo poprawic alert
-        alert(error)
+        setShowLoadingErrorNotes(true);
+      } finally {
+        setLoadingNotes(false)
       }
     }
     loadNotes();
@@ -43,9 +51,19 @@ function App() {
       alert(error)
     }
   }
+
+  const notesGrid =
+    <Row xs={1} md={2} xl={3} className={`g-3 ${styles.noteGrid}`}>
+      {notes.map((note) => ( 
+        <Col key={note._id} >
+          {/* Todo sprawdzić czy można lepiej nazwać lub inaczej zaimplementwać className bo coś mi nie pasuje w tym */}
+          <NoteComponent note={note} className={styles.singleNote} onDeleteNote={deleteNote} onNoteClicked={setNoteAbleEdit} />
+        </Col>
+      ))}
+    </Row>
   
   return (
-    <Container>
+    <Container className={styles.notePage}>
       <Button
         className={resuableUtils.flexCenter}
         onClick={() => setShowNoteModal(true)}
@@ -53,14 +71,17 @@ function App() {
         <FaPlus />
         New Note
       </Button>
-      <Row xs={1} md={2} xl={3} className="g-3">
-        {notes.map((note) => ( 
-          <Col key={note._id} >
-            {/* Todo sprawdzić czy można lepiej nazwać lub inaczej zaimplementwać className bo coś mi nie pasuje w tym */}
-            <NoteComponent note={note} className={styles.singleNote} onDeleteNote={deleteNote} onNoteClicked={setNoteAbleEdit} />
-          </Col>
-        ))}
-      </Row>
+
+      {loadingNotes && <Spinner animation='border' variant='primary' />}
+      {showLoadingErrorNotes && <p>Somethng is wrong with loading notes. Refresh the page</p>}
+      {/* jeśli nie ma błędów to wyswietlaja sie notatki */}
+      {!loadingNotes && !showLoadingErrorNotes && 
+        <>
+          {
+            notes.length > 0 ? notesGrid : <p>Board is empty of notes</p>
+          }
+        </>
+      }
       {
         // Todo sprobowac nie robic tego za pomocą ... && ... a zrobić to w pliku <AddNote.. /> używając np. show
         // jezeli chce sie zachowac wartosci po zamknieciu popupu wtedy trzeba uzyc SHOW property
