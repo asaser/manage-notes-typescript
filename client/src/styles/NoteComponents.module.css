@@ -9,3 +9,10 @@
 .cardText {
     white-space: pre-line;
 }
+
+.cardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}

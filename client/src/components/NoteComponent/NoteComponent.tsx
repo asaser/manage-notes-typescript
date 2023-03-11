@@ -1,15 +1,18 @@
-import styles from './NoteComponents.module.css'
+import styles from '../../styles/NoteComponents.module.css'
 import { Card } from 'react-bootstrap';
 import { NoteModel } from '../../models/noteModel';
 import { formatDate } from '../../utils/formatDate';
+import { MdDelete } from "react-icons/md"
 
 interface NoteComponentProps {
     note: NoteModel,
     // możliwość dodania classy aby zmieniac CSS
     className?: string,
+    onDeleteNote: (note: NoteModel) => void,
+    onNoteClicked: (note: NoteModel) => void,
 }
 
-const NoteComponent = ({ note, className }: NoteComponentProps) => {
+const NoteComponent = ({ note, className, onDeleteNote, onNoteClicked }: NoteComponentProps) => {
 
     // lepiej zdestruktyryzowac aby nie powtarzac NOTE
     const {
@@ -30,10 +33,20 @@ const NoteComponent = ({ note, className }: NoteComponentProps) => {
 
     return (
         // Todo moze w bootstrap jest mozliwosc jak w material-ui aby uzywac styled i uzywac calych kompnentow jako styli (reg-f)
-        <Card className={`${styles.noteCard} ${className}`}>
+        <Card 
+            className={`${styles.noteCard} ${className}`}
+            onClick = {() => onNoteClicked(note)}
+        >
             <Card.Body className={styles.cardBody}>
-                <Card.Title>
+                <Card.Title className={styles.cardTitle}>
                     {title}
+                    <MdDelete 
+                        className='ms-auto'
+                        onClick={(e) => {
+                            onDeleteNote(note)
+                            e.stopPropagation();
+                        }}
+                    />
                 </Card.Title>
                 <Card.Text className={styles.cardText}>
                     {text}
