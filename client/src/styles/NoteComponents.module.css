@@ -1,0 +1,18 @@
+.noteCard {
+    background-color: rgba(238, 225, 49, 0.808);
+}
+
+.cardBody {
+    overflow: hidden;
+}
+
+.cardText {
+    white-space: pre-line;
+}
+
+.cardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
