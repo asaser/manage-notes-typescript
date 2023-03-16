@@ -1,112 +1,77 @@
-import React, { useEffect, useState } from 'react';
-import { NoteModel } from './models/noteModel';
-import NoteComponent from './components/NoteComponent/NoteComponent';
-import { Button, Col, Container, Row, Spinner } from 'react-bootstrap';
-import * as NotesApi from './routes/notesRouters';
+import { useEffect, useState } from 'react';
+import { Container } from 'react-bootstrap';
 
 // Todo zrobic tak aby nie było innych w App.tsx komponentow
 // Todo zrobi porzadek z css plikami
-import styles from './styles/SingleNoteComponent.module.css';
-import resuableUtils from './styles/resuableUtils.module.css';
-import AddEditNoteDialog from './components/AddNoteDialog/AddEditNoteDialog';
-import { FaPlus } from 'react-icons/fa'
+import LoginComponent from './components/LoginCompnent/LoginComponent';
+import NavBarComponent from './components/NavBarComponent/NavBarComponent';
+import SignUpComponent from './components/SignUp/SignUpComponent';
+import * as NotesApi from './routes/notesRouters';
+
+import { UserModel } from './models/userModel';
+import styles from './styles/singleNoteComponent.module.css';
+import NoteLoggedComponent from './components/NoteComponent/NoteLoggedComponent';
+import NoteLogoutComponent from './components/NoteComponent/NoteLogoutComponent';
 
 function App() {
-  const [notes, setNotes] = useState<NoteModel[]>([]);
-  const [showNoteModal, setShowNoteModal] = useState(false);
 
-  // po to aby schowac i pokazac dialog
-  const [noteAbleEdit, setNoteAbleEdit] = useState<NoteModel | null>(null)
+  const [loginUser, setLoginUser] = useState<UserModel | null>(null);
 
-  // notes loading
-  const [loadingNotes, setLoadingNotes] = useState(true);
-  const [showLoadingErrorNotes, setShowLoadingErrorNotes] = useState(false)
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
-    async function loadNotes() {
+    async function loginUser() {
       try {
-        setShowLoadingErrorNotes(false);
-        setLoadingNotes(true);
-        const allNotes = await NotesApi.fetchNotes()
-        // Todo sprawdzic czy jak sie zmieni NOTES na inny tekst to bedzie dzialac bo jest podobny do 
-        setNotes(allNotes)
+        const user = await NotesApi.getLoginUser();
+        setLoginUser(user)
       } catch (error) {
         console.log(error);
-        // Todo poprawic alert
-        setShowLoadingErrorNotes(true);
-      } finally {
-        setLoadingNotes(false)
+        
       }
     }
-    loadNotes();
-    // check to tylko podczas rozpoczecia fukcji
-  }, []);
 
-
-  async function deleteNote(deletedNote: NoteModel) {
-    try {
-      await NotesApi.deleteNote(deletedNote._id);
-      setNotes(notes.filter((currentNote) => currentNote._id !== deletedNote._id));
-    } catch (error) {
-      alert(error)
-    }
-  }
-
-  const notesGrid =
-    <Row xs={1} md={2} xl={3} className={`g-3 ${styles.noteGrid}`}>
-      {notes.map((note) => ( 
-        <Col key={note._id} >
-          {/* Todo sprawdzić czy można lepiej nazwać lub inaczej zaimplementwać className bo coś mi nie pasuje w tym */}
-          <NoteComponent note={note} className={styles.singleNote} onDeleteNote={deleteNote} onNoteClicked={setNoteAbleEdit} />
-        </Col>
-      ))}
-    </Row>
+    // egzekfowane jest jeden raz jak otwieramy strone
+  }, [])
   
   return (
-    <Container className={styles.notePage}>
-      <Button
-        className={resuableUtils.flexCenter}
-        onClick={() => setShowNoteModal(true)}
-      >
-        <FaPlus />
-        New Note
-      </Button>
-
-      {loadingNotes && <Spinner animation='border' variant='primary' />}
-      {showLoadingErrorNotes && <p>Somethng is wrong with loading notes. Refresh the page</p>}
-      {/* jeśli nie ma błędów to wyswietlaja sie notatki */}
-      {!loadingNotes && !showLoadingErrorNotes && 
+    <div>
+      <NavBarComponent 
+        loggedUser = {loginUser}
+        onSignUpClick = {() => setShowSignUp(true)}
+        onLoginClick = {() => setShowLogin(true)}
+        onLogoutClick = {() => setLoginUser(null)}
+      />
+      <Container className={styles.notePage}>
         <>
-          {
-            notes.length > 0 ? notesGrid : <p>Board is empty of notes</p>
+          {loginUser ?
+            <NoteLoggedComponent />
+            :
+            <NoteLogoutComponent />
           }
         </>
-      }
-      {
-        // Todo sprobowac nie robic tego za pomocą ... && ... a zrobić to w pliku <AddNote.. /> używając np. show
-        // jezeli chce sie zachowac wartosci po zamknieciu popupu wtedy trzeba uzyc SHOW property
-        // Todo sprobowac uzyc show property dla zabawy
-        showNoteModal && 
-        <AddEditNoteDialog 
-          onCloseModal = {() => setShowNoteModal(false)} 
-          onNoteSave={(newNote) => {
-            setNotes([...notes, newNote])
-            setShowNoteModal(false)
-          }} 
-        />
-      }
-
-      {noteAbleEdit &&
-        <AddEditNoteDialog
-          noteEdit = {noteAbleEdit}
-          onCloseModal={() => setNoteAbleEdit(null)}
-          onNoteSave = {(updatedNote) => {
-            setNotes(notes.map(currentNote => currentNote._id === updatedNote._id ? updatedNote : currentNote))
-            setNoteAbleEdit(null);
-          }}
-        />
-      }
-    </Container>
+      </Container>
+        {
+          showSignUp &&
+          <SignUpComponent
+            onDeregistration = {() => setShowSignUp(false)}
+            onSignUpSuccess = {(user) => {
+              setLoginUser(user);
+              setShowSignUp(false);
+            }}
+          />
+        }
+        {
+          showLogin &&
+          <LoginComponent
+            onDeregistration={() => setShowLogin(false)}
+            onLoginSuccess={(user) => {
+              setLoginUser(user);
+              setShowLogin(false);
+            }}
+          />
+        }
+    </div>
   );
 }
 
