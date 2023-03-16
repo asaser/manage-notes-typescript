@@ -1,4 +1,4 @@
-import styles from '../../styles/NoteComponents.module.css'
+import styles from '../../styles/noteComponents.module.css'
 import { Card } from 'react-bootstrap';
 import { NoteModel } from '../../models/noteModel';
 import { formatDate } from '../../utils/formatDate';
