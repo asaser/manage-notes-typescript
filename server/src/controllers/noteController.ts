@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import NoteModel from "../models/noteModel";
+import { assertsDefinedUser } from "../util/definedUser";
 
 // Todo ujednilicic CreateNotesStates i UpdateNotesStates
 interface CreateNotesStates {
@@ -19,8 +20,12 @@ interface UpdateNotesParams {
 }
 
 export const getNotes: RequestHandler = async (req, res, next) => {
+  const authUserId = req.session.userId;
+
   try {
-    const notesModel = await NoteModel.find().exec();
+    assertsDefinedUser(authUserId);
+
+    const notesModel = await NoteModel.find({userId: authUserId}).exec();
     res.status(200).json(notesModel);
   } catch (error) {
     next(error);
@@ -29,8 +34,10 @@ export const getNotes: RequestHandler = async (req, res, next) => {
 
 export const getNote: RequestHandler = async (req, res, next) => {
   const noteId = req.params.noteId;
+  const authUserId = req.session.userId;
 
   try {
+    assertsDefinedUser(authUserId);
     // możemy użyć mongoose.isValidObjectId ponieważ mongo nie jest w stanie
     // sprawdzić findById(noteId) czy już zostało załadowane
     if (!mongoose.isValidObjectId(noteId)) {
@@ -41,6 +48,11 @@ export const getNote: RequestHandler = async (req, res, next) => {
 
     if (!note) {
       throw createHttpError(400, "Note not found, invalid note id");
+    }
+
+    if (!note.userId?.equals(authUserId)) {
+      // Todo zmienić nazwe error
+      throw createHttpError(401, "This note is secret")
     }
 
     res.status(200).json(note);
@@ -54,14 +66,19 @@ export const getNote: RequestHandler = async (req, res, next) => {
 export const createNotes: RequestHandler<unknown, unknown, CreateNotesStates, unknown> = async (req, res, next) => {
   const title = req.body.title;
   const text = req.body.text;
+  const authUserId = req.session.userId;
+
 
   try {
+    assertsDefinedUser(authUserId)
+
     if (title === undefined) {
       // Todo może można używać czegość innego niż createHttpError
       throw createHttpError(400, "Missing title in note");
     }
 
     const newNote = await NoteModel.create({
+      userId: authUserId,
       title: title,
       text: text,
     });
@@ -76,9 +93,10 @@ export const updateNote: RequestHandler<UpdateNotesParams, unknown, UpdateNotesS
     const noteId = req.params.noteId;
     const updateTitle = req.body.title;
     const updatText = req.body.text;
+    const authUserId = req.session.userId;
 
     try {
-
+        assertsDefinedUser(authUserId)
         // Todo refactor if statement
         if (!mongoose.isValidObjectId(noteId)) {
             throw createHttpError(400, "Invalid length of note id");
@@ -94,6 +112,11 @@ export const updateNote: RequestHandler<UpdateNotesParams, unknown, UpdateNotesS
         if(!note) {
             throw createHttpError(404, "Note not found, invalid note id")
         }
+
+        if (!note.userId?.equals(authUserId)) {
+          // Todo zmienić nazwe error oraz zrobic osobny plik z error message aby lepiej to wygladalo
+          throw createHttpError(401, "This note is secret so you can not update this")
+        }
         
         note.title = updateTitle;
         note.text = updatText;
@@ -108,8 +131,11 @@ export const updateNote: RequestHandler<UpdateNotesParams, unknown, UpdateNotesS
 
 export const deleteNote: RequestHandler = async(req, res, next) => {
     const noteId = req.params.noteId;
+    const authUserId = req.session.userId;
 
     try {
+        assertsDefinedUser(authUserId)
+
         if (!mongoose.isValidObjectId(noteId)) {
             throw createHttpError(400, "Invalid length of note id");
         }
@@ -120,7 +146,11 @@ export const deleteNote: RequestHandler = async(req, res, next) => {
         if(!note) {
             throw createHttpError(404, "Note not found, invalid note id")
         }
-
+        
+        if (!note.userId?.equals(authUserId)) {
+          // Todo zmienić nazwe error oraz zrobic osobny plik z error message aby lepiej to wygladalo
+          throw createHttpError(401, "This note is secret so you can not update this")
+        }
         // Todo sprawdzić różnicę między REMOVE a DELETEONE
         await note.deleteOne();
         

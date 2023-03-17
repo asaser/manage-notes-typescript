@@ -6,9 +6,9 @@ import createHttpError, { isHttpError } from "http-errors";
 import session from "express-session";
 import env from "./util/validateEnv";
 import MongoStore from "connect-mongo";
+import { requestAuth } from "../middleware/auth";
 
 const app = express();
-const sessionSecret = env.SESSION_SECRET;
 
 app.use(morgan("dev"));
 
@@ -16,10 +16,11 @@ app.use(express.json());
 
 // dodany plik @types oraz zmieniono konfiguracje wewntrz tsconfig aby mona by zapisywac uzytkownikow w sessji
 app.use(session({
-  secret: sessionSecret,
+  // Todo zrobić wartość z tego secret
+  secret: env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  // dlugosc zycia logowanych informacji
+  // dlugosc zycia logowanych informacji czyli cookies
   cookie: {
     maxAge: 60 * 60 * 1000,
   },
@@ -32,8 +33,8 @@ app.use(session({
   })
 }));
 
-app.use("/api/notes", noteRouters);
 app.use("/api/users", userRoutes);
+app.use("/api/notes", requestAuth, noteRouters);
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint not found"))

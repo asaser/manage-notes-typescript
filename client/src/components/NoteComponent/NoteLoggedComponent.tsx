@@ -6,8 +6,9 @@ import * as NotesApi from '../../routes/notesRouters';
 import AddEditNoteDialog from "../AddNoteDialog/AddEditNoteDialog";
 import NoteComponent from "./NoteComponent";
 
-import styles from '../../styles/noteComponents.module.css';
+// Todo przepatrzeć style i poprawić nazewnictwo plików oraz ogolnie stylowanie
 import resuableUtils from '../../styles/resuableUtils.module.css';
+import styleCard from '../../styles/singleNoteComponent.module.css';
 
 const NoteLoggedComponent = () => {
 
@@ -42,6 +43,12 @@ const NoteLoggedComponent = () => {
       }, []);
 
       
+  // Todo wyczyścić mongoDB database ze starych plików
+
+
+
+
+
   async function deleteNote(deletedNote: NoteModel) {
     try {
       await NotesApi.deleteNote(deletedNote._id);
@@ -52,11 +59,11 @@ const NoteLoggedComponent = () => {
   }
 
       const notesGrid =
-      <Row xs={1} md={2} xl={3} className={`g-3 ${styles.noteGrid}`}>
+      <Row className={styleCard.notesPage}>
         {notes.map((note) => ( 
-          <Col key={note._id} >
+          <Col key={note._id} className={styleCard.notesPage}>
             {/* Todo sprawdzić czy można lepiej nazwać lub inaczej zaimplementwać className bo coś mi nie pasuje w tym */}
-            <NoteComponent note={note} className={styles.singleNote} onDeleteNote={deleteNote} onNoteClicked={setNoteAbleEdit} />
+            <NoteComponent note={note} className={styleCard.singleNote} onDeleteNote={deleteNote} onNoteClicked={setNoteAbleEdit} />
           </Col>
         ))}
       </Row>
