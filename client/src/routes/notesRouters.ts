@@ -32,7 +32,7 @@ async function fetchData(input: RequestInfo, init?: RequestInit) {
 
 // Todo stworzyc osobny plik dla routów USER i NOTE
 export async function getLoginUser(): Promise<UserModel> {
-    const response = await fetchData("api/users", { method: "GEt"});
+    const response = await fetchData("api/users", { method: "GET"});
     return response.json();
 }
 

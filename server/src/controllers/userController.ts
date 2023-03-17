@@ -22,12 +22,7 @@ export const getAuthenticatedUser: RequestHandler = async (req, res, next) => {
     const authenticatedUser = req.session.userId;
 
     try {
-        if(!authenticatedUser) {
-            throw createHttpError(401, "User is not authenticated")
-        }
-
-        const existingUser = await UserModel.findById(authenticatedUser).select("+email").exec();
-
+        const existingUser = await UserModel.findById(authenticatedUser).select("+email").exec();        
         res.status(200).json(existingUser);
     } catch (error) {
         next(error)
