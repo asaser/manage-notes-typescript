@@ -8,7 +8,7 @@ import NoteComponent from "./NoteComponent";
 
 // Todo przepatrzeć style i poprawić nazewnictwo plików oraz ogolnie stylowanie
 import resuableUtils from '../../styles/resuableUtils.module.css';
-import styleCard from '../../styles/singleNoteComponent.module.css';
+import styleCard from '../../styles/SingleNoteComponent.module.css';
 
 const NoteLoggedComponent = () => {
 

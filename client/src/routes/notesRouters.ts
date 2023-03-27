@@ -1,3 +1,4 @@
+import { ConflictError, UnauthorizeError } from "../errors/http_errors";
 import { NoteModel } from "../models/noteModel";
 import { UserModel } from "../models/userModel";
 
@@ -26,7 +27,16 @@ async function fetchData(input: RequestInfo, init?: RequestInit) {
         const errorBody = await response.json();
         const errorMessage = errorBody.error;
 
-        throw Error(errorMessage);
+        // Todo to jest powiazane z clasami o http_errors wiec tot ez mozna usunac jesli tamto bedzie nei potrzebne lub tamto mozna zamienic na cos innego
+        if (response.status === 401) {
+            throw new UnauthorizeError(errorMessage);
+        } else if (response.status === 409) {
+            throw new ConflictError(errorMessage);
+        } else {
+            throw Error("Request failed with status: " + response.status + " message: " + errorMessage);
+        }
+
+        // throw Error(errorMessage);
     }
 }
 

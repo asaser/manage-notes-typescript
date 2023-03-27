@@ -1,4 +1,5 @@
-import { Button, Form, Modal } from "react-bootstrap";
+import { useState } from 'react';
+import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { UserModel } from "../../models/userModel";
 import * as NewSignUpParams from "../../routes/notesRouters";
@@ -6,6 +7,7 @@ import { SignUpParams } from "../../routes/notesRouters";
 import TextInputField from "../InputField/TextInputField";
 
 import styleUtils from "../../styles/signUpComponent.module.css";
+import { ConflictError } from '../../errors/http_errors';
 
 interface SignUpProps {
     onDeregistration: () => void,
@@ -13,6 +15,10 @@ interface SignUpProps {
 }
 
 const SignUpComponent = ({onDeregistration, onSignUpSuccess}: SignUpProps) => {
+
+    // Todo sprawdzic czy null powinien tutaj byc
+    const [errorText, setErrorText] = useState<string | null>(null);
+
     const { register, handleSubmit, formState: { errors, isSubmitting }} = useForm<SignUpParams>();
 
     async function onSubmit(params: SignUpParams) {
@@ -20,7 +26,13 @@ const SignUpComponent = ({onDeregistration, onSignUpSuccess}: SignUpProps) => {
             const newUser = await NewSignUpParams.signUp(params);
             onSignUpSuccess(newUser)
         } catch (error) {
-            alert(error)
+            if(error instanceof ConflictError) {                
+                setErrorText(error.message)
+            } else {                
+                alert(error)
+            }
+            console.log(error);
+            
         }
     }
     return ( 
@@ -31,6 +43,12 @@ const SignUpComponent = ({onDeregistration, onSignUpSuccess}: SignUpProps) => {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                {/* Todo to cos nie dziala i nie pokazuje jak wpisuje sie tego samego uzytkownika podczas SignUp trzeba to naprawić */}
+                {errorText &&
+                    <Alert variant='danger'>
+                        {errorText}
+                    </Alert>
+                }
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <TextInputField 
                         name="username"
